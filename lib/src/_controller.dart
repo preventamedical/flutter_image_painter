@@ -43,12 +43,6 @@ class Controller extends ChangeNotifier {
 
   Offset? get end => _end;
 
-  bool get onTextUpdateMode =>
-      _mode == PaintMode.text &&
-      _paintHistory
-          .where((element) => element.mode == PaintMode.text)
-          .isNotEmpty;
-
   Controller({
     double strokeWidth = 4.0,
     Color color = Colors.red,
@@ -59,8 +53,6 @@ class Controller extends ChangeNotifier {
     _strokeWidth = strokeWidth;
     _color = color;
     _mode = mode;
-    _text = text;
-    _fill = fill;
   }
 
   void addPaintInfo(PaintInfo paintInfo) {
@@ -133,9 +125,7 @@ class Controller extends ChangeNotifier {
   }) {
     _strokeWidth = strokeWidth ?? _strokeWidth;
     _color = color ?? _color;
-    _fill = fill ?? _fill;
     _mode = mode ?? _mode;
-    _text = text ?? _text;
     _strokeMultiplier = strokeMultiplier ?? _strokeMultiplier;
     notifyListeners();
   }
@@ -146,16 +136,6 @@ class Controller extends ChangeNotifier {
   }
 
   bool get shouldFill {
-    if (mode == PaintMode.circle || mode == PaintMode.rect) {
-      return _fill;
-    } else {
-      return false;
-    }
-  }
-}
-
-extension ControllerExt on Controller {
-  bool canFill() {
-    return mode == PaintMode.circle || mode == PaintMode.rect;
+    return false;
   }
 }

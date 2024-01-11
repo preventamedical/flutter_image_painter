@@ -36,18 +36,7 @@ class ColorItem extends StatelessWidget {
 }
 
 const List<Color> editorColors = [
-  Colors.black,
-  Colors.white,
   Colors.red,
-  Colors.grey,
-  Colors.teal,
-  Colors.cyan,
   Colors.blue,
-  Colors.blueAccent,
-  Colors.greenAccent,
   Colors.green,
-  Colors.pink,
-  Colors.yellow,
-  Colors.orange,
-  Colors.brown,
 ];

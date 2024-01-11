@@ -3,17 +3,14 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide Image;
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '_controller.dart';
 import '_image_painter.dart';
-import '_signature_painter.dart';
 import 'delegates/text_delegate.dart';
 import 'widgets/_color_widget.dart';
 import 'widgets/_mode_widget.dart';
 import 'widgets/_range_slider.dart';
-import 'widgets/_text_dialog.dart';
 
 export '_image_painter.dart';
 
@@ -34,9 +31,7 @@ class ImagePainter extends StatefulWidget {
     this.clearAllIcon,
     this.colorIcon,
     this.undoIcon,
-    this.isSignature = false,
     this.controlsAtTop = true,
-    this.signatureBackgroundColor = Colors.white,
     this.colors,
     this.initialPaintMode,
     this.initialStrokeWidth,
@@ -290,57 +285,6 @@ class ImagePainter extends StatefulWidget {
     );
   }
 
-  ///Constructor for signature painting.
-  factory ImagePainter.signature({
-    required Key key,
-    Color? signatureBgColor,
-    double? height,
-    double? width,
-    List<Color>? colors,
-    Widget? brushIcon,
-    Widget? undoIcon,
-    Widget? clearAllIcon,
-    Widget? colorIcon,
-    ValueChanged<PaintMode>? onPaintModeChanged,
-    ValueChanged<Color>? onColorChanged,
-    ValueChanged<double>? onStrokeWidthChanged,
-    TextDelegate? textDelegate,
-    bool? controlsAtTop,
-    bool? showControls,
-    Color? controlsBackgroundColor,
-    Color? selectedColor,
-    Color? unselectedColor,
-    Color? optionColor,
-    VoidCallback? onUndo,
-    VoidCallback? onClear,
-  }) {
-    return ImagePainter._(
-      key: key,
-      height: height,
-      width: width,
-      isSignature: true,
-      isScalable: false,
-      colors: colors,
-      signatureBackgroundColor: signatureBgColor ?? Colors.white,
-      brushIcon: brushIcon,
-      undoIcon: undoIcon,
-      colorIcon: colorIcon,
-      clearAllIcon: clearAllIcon,
-      onPaintModeChanged: onPaintModeChanged,
-      onColorChanged: onColorChanged,
-      onStrokeWidthChanged: onStrokeWidthChanged,
-      textDelegate: textDelegate,
-      controlsAtTop: controlsAtTop ?? true,
-      showControls: showControls ?? true,
-      controlsBackgroundColor: controlsBackgroundColor,
-      optionSelectedColor: selectedColor,
-      optionUnselectedColor: unselectedColor,
-      optionColor: optionColor,
-      onUndo: onUndo,
-      onClear: onClear,
-    );
-  }
-
   ///Only accessible through [ImagePainter.network] constructor.
   final String? networkUrl;
 
@@ -364,12 +308,6 @@ class ImagePainter extends StatefulWidget {
 
   ///Defines whether the widget should be scaled or not. Defaults to [false].
   final bool? isScalable;
-
-  ///Flag to determine signature or image;
-  final bool isSignature;
-
-  ///Signature mode background color
-  final Color signatureBackgroundColor;
 
   ///List of colors for color selection
   ///If not provided, default colors are used.
@@ -430,7 +368,6 @@ class ImagePainter extends StatefulWidget {
 
 ///
 class ImagePainterState extends State<ImagePainter> {
-  final _repaintKey = GlobalKey();
   ui.Image? _image;
   late Controller _controller;
   late final ValueNotifier<bool> _isLoaded;
@@ -444,18 +381,11 @@ class ImagePainterState extends State<ImagePainter> {
     super.initState();
     _isLoaded = ValueNotifier<bool>(false);
     _controller = Controller();
-    if (widget.isSignature) {
-      _controller.update(
-        mode: PaintMode.freeStyle,
-        color: Colors.black,
-      );
-    } else {
-      _controller.update(
+    _controller.update(
         mode: widget.initialPaintMode,
         strokeWidth: widget.initialStrokeWidth,
-        color: widget.initialColor,
-      );
-    }
+        color: widget.initialColor);
+
     _resolveAndConvertImage();
 
     _textController = TextEditingController();
@@ -550,7 +480,7 @@ class ImagePainterState extends State<ImagePainter> {
       valueListenable: _isLoaded,
       builder: (_, loaded, __) {
         if (loaded) {
-          return widget.isSignature ? _paintSignature() : _paintImage();
+          return _paintImage();
         } else {
           return Container(
             height: widget.height ?? double.maxFinite,
@@ -609,74 +539,6 @@ class ImagePainterState extends State<ImagePainter> {
     );
   }
 
-  Widget _paintSignature() {
-    return Stack(
-      children: [
-        RepaintBoundary(
-          key: _repaintKey,
-          child: ClipRect(
-            child: Container(
-              width: widget.width ?? double.maxFinite,
-              height: widget.height ?? double.maxFinite,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (_, __) {
-                  return InteractiveViewer(
-                    transformationController: _transformationController,
-                    panEnabled: false,
-                    scaleEnabled: false,
-                    onInteractionStart: _scaleStartGesture,
-                    onInteractionUpdate: _scaleUpdateGesture,
-                    onInteractionEnd: _scaleEndGesture,
-                    child: CustomPaint(
-                      willChange: true,
-                      isComplex: true,
-                      painter: SignaturePainter(
-                        backgroundColor: widget.signatureBackgroundColor,
-                        controller: _controller,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-        if (widget.showControls)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: textDelegate.undo,
-                  icon: widget.undoIcon ??
-                      Icon(Icons.reply, color: Colors.grey[700]),
-                  onPressed: () => _controller.undo(),
-                ),
-                IconButton(
-                  tooltip: textDelegate.clearAllProgress,
-                  icon: widget.clearAllIcon ??
-                      Icon(Icons.clear, color: Colors.grey[700]),
-                  onPressed: () => _controller.clear(),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  _scaleStartGesture(ScaleStartDetails onStart) {
-    final _zoomAdjustedOffset =
-        _transformationController.toScene(onStart.localFocalPoint);
-    if (!widget.isSignature) {
-      _controller.setStart(_zoomAdjustedOffset);
-      _controller.addOffsets(_zoomAdjustedOffset);
-    }
-  }
-
   ///Fires while user is interacting with the screen to record painting.
   void _scaleUpdateGesture(ScaleUpdateDetails onUpdate) {
     final _zoomAdjustedOffset =
@@ -688,11 +550,6 @@ class ImagePainterState extends State<ImagePainter> {
     _controller.setEnd(_zoomAdjustedOffset);
     if (_controller.mode == PaintMode.freeStyle) {
       _controller.addOffsets(_zoomAdjustedOffset);
-    }
-    if (_controller.onTextUpdateMode) {
-      _controller.paintHistory
-          .lastWhere((element) => element.mode == PaintMode.text)
-          .offsets = [_zoomAdjustedOffset];
     }
   }
 
@@ -706,8 +563,7 @@ class ImagePainterState extends State<ImagePainter> {
       _addFreeStylePoints();
       _controller.offsets.clear();
     } else if (_controller.start != null &&
-        _controller.end != null &&
-        _controller.mode != PaintMode.text) {
+        _controller.end != null) {
       _addEndPoints();
     }
     _controller.resetStartAndEnd();
@@ -719,7 +575,6 @@ class ImagePainterState extends State<ImagePainter> {
           mode: _controller.mode,
           color: _controller.color,
           strokeWidth: _controller.scaledStrokeWidth,
-          fill: _controller.fill,
         ),
       );
 
@@ -764,9 +619,6 @@ class ImagePainterState extends State<ImagePainter> {
                       _controller.setMode(item.mode);
 
                       Navigator.of(context).pop();
-                      if (item.mode == PaintMode.text) {
-                        _openTextDialog();
-                      }
                     },
                   ),
                 )
@@ -830,11 +682,7 @@ class ImagePainterState extends State<ImagePainter> {
   ///Can be converted to image file by writing as bytes.
   Future<Uint8List?> exportImage() async {
     late ui.Image _convertedImage;
-    if (widget.isSignature) {
-      final _boundary = _repaintKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
-      _convertedImage = await _boundary.toImage(pixelRatio: 3);
-    } else if (widget.byteArray != null && _controller.paintHistory.isEmpty) {
+    if (widget.byteArray != null && _controller.paintHistory.isEmpty) {
       return widget.byteArray;
     } else {
       _convertedImage = await _renderImage();
@@ -848,33 +696,6 @@ class ImagePainterState extends State<ImagePainter> {
     if (info.mode != PaintMode.none) {
       _controller.addPaintInfo(info);
     }
-  }
-
-  void _openTextDialog() {
-    _controller.setMode(PaintMode.text);
-    final fontSize = 6 * _controller.strokeWidth;
-    TextDialog.show(
-      context,
-      _textController,
-      fontSize,
-      _controller.color,
-      textDelegate,
-      onFinished: (context) {
-        if (_textController.text.isNotEmpty) {
-          _addPaintHistory(
-            PaintInfo(
-              mode: PaintMode.text,
-              text: _textController.text,
-              offsets: [],
-              color: _controller.color,
-              strokeWidth: _controller.scaledStrokeWidth,
-            ),
-          );
-          _textController.clear();
-        }
-        Navigator.of(context).pop();
-      },
-    );
   }
 
   Widget _buildControls() {
@@ -929,29 +750,6 @@ class ImagePainterState extends State<ImagePainter> {
             icon:
                 widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
             itemBuilder: (_) => [_showRangeSlider()],
-          ),
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (_, __) {
-              if (_controller.canFill()) {
-                return Row(
-                  children: [
-                    Checkbox.adaptive(
-                      value: _controller.shouldFill,
-                      onChanged: (val) {
-                        _controller.update(fill: val);
-                      },
-                    ),
-                    Text(
-                      'Fill',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    )
-                  ],
-                );
-              } else {
-                return const SizedBox();
-              }
-            },
           ),
           const Spacer(),
           IconButton(

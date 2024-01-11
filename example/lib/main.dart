@@ -82,7 +82,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
         initialStrokeWidth: 2,
         textDelegate: TextDelegate(),
         initialColor: Colors.green,
-        initialPaintMode: PaintMode.line,
+        initialPaintMode: PaintMode.freeStyle,
       ),
     );
   }
