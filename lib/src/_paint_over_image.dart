@@ -23,6 +23,7 @@ class ImagePainter extends StatefulWidget {
     Key? key,
     this.assetPath,
     this.networkUrl,
+    this.bgNetworkUrl,
     this.byteArray,
     this.file,
     this.height,
@@ -52,8 +53,9 @@ class ImagePainter extends StatefulWidget {
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
-  factory ImagePainter.network(
-    String url, {
+  factory ImagePainter.network({
+    required String url,
+    required String bgUrl,
     required Key key,
     double? height,
     double? width,
@@ -83,6 +85,7 @@ class ImagePainter extends StatefulWidget {
     return ImagePainter._(
       key: key,
       networkUrl: url,
+      bgNetworkUrl: bgUrl,
       height: height,
       width: width,
       placeHolder: placeholderWidget,
@@ -290,6 +293,9 @@ class ImagePainter extends StatefulWidget {
   ///Only accessible through [ImagePainter.network] constructor.
   final String? networkUrl;
 
+  ///Only accessible through [ImagePainter.network] constructor.
+  final String? bgNetworkUrl;
+
   ///Only accessible through [ImagePainter.memory] constructor.
   final Uint8List? byteArray;
 
@@ -363,7 +369,6 @@ class ImagePainter extends StatefulWidget {
 ///
 class ImagePainterState extends State<ImagePainter> {
   ui.Image? _image;
-  ui.Image? _imageFg;
   late Controller _controller;
   late final ValueNotifier<bool> _isLoaded;
   late final ValueNotifier<bool> _isDisplayed;
@@ -523,8 +528,9 @@ class ImagePainterState extends State<ImagePainter> {
           if (pixel.g > 0) photo.setPixelRgba(x, y, 0, 255, 0, 255);
           if (pixel.b > 0) photo.setPixelRgba(x, y, 0, 0, 255, 255);
         }
-        if (pixel.r == 0 && pixel.g == 0 && pixel.b == 0)
+        if (pixel.r == 0 && pixel.g == 0 && pixel.b == 0) {
           photo.setPixelRgba(x, y, 0, 0, 0, 0);
+        }
       }
     }
 
@@ -584,8 +590,7 @@ class ImagePainterState extends State<ImagePainter> {
                               height: imageSize.height,
                               width: imageSize.width,
                               //color: Colors.transparent,
-                              child: Image.network(
-                                  'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3.png?alt=media&token=728ad0c5-1140-489f-80de-df4fcf49f0d4'),
+                              child: Image.network(widget.bgNetworkUrl!),
                             ),
                             ValueListenableBuilder<bool>(
                                 valueListenable: _isDisplayed,
