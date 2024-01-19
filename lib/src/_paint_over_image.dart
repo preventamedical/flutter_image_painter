@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide Image;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image/image.dart' as img_pkg;
 
 import '_controller.dart';
 import '_image_painter.dart';
@@ -339,9 +341,7 @@ class ImagePainter extends StatefulWidget {
   final Color? initialColor;
 
   final ValueChanged<Color>? onColorChanged;
-
   final ValueChanged<double>? onStrokeWidthChanged;
-
   final ValueChanged<PaintMode>? onPaintModeChanged;
 
   //the text delegate
@@ -349,17 +349,11 @@ class ImagePainter extends StatefulWidget {
 
   ///It will control displaying the Control Bar
   final bool showControls;
-
   final Color? controlsBackgroundColor;
-
   final Color? optionSelectedColor;
-
   final Color? optionUnselectedColor;
-
   final Color? optionColor;
-
   final VoidCallback? onUndo;
-
   final VoidCallback? onClear;
 
   @override
@@ -369,8 +363,10 @@ class ImagePainter extends StatefulWidget {
 ///
 class ImagePainterState extends State<ImagePainter> {
   ui.Image? _image;
+  ui.Image? _imageFg;
   late Controller _controller;
   late final ValueNotifier<bool> _isLoaded;
+  late final ValueNotifier<bool> _isDisplayed;
   late final TextEditingController _textController;
   late final TransformationController _transformationController;
 
@@ -380,6 +376,7 @@ class ImagePainterState extends State<ImagePainter> {
   void initState() {
     super.initState();
     _isLoaded = ValueNotifier<bool>(false);
+    _isDisplayed = ValueNotifier<bool>(true);
     _controller = Controller();
     _controller.update(
         mode: widget.initialPaintMode,
@@ -410,7 +407,9 @@ class ImagePainterState extends State<ImagePainter> {
   ///Converts the incoming image type from constructor to [ui.Image]
   Future<void> _resolveAndConvertImage() async {
     if (widget.networkUrl != null) {
+      //_imageFg = await _loadNetworkImage('https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F15f0682d-b064-4508-9ff6-f9ed7a52db09_od_posterior_220806T1509.png?alt=media&token=29466961-9ff1-4a14-be06-16f99cb24f45', isVessels: false);
       _image = await _loadNetworkImage(widget.networkUrl!);
+
       if (_image == null) {
         throw ("${widget.networkUrl} couldn't be resolved.");
       } else {
@@ -464,14 +463,76 @@ class ImagePainterState extends State<ImagePainter> {
   }
 
   ///Completer function to convert network image to [ui.Image] before drawing on custompainter.
-  Future<ui.Image> _loadNetworkImage(String path) async {
+  Future<ui.Image> _loadNetworkImage(String path, {isVessels = true}) async {
     final completer = Completer<ImageInfo>();
     final img = NetworkImage(path);
     img.resolve(const ImageConfiguration()).addListener(
         ImageStreamListener((info, _) => completer.complete(info)));
     final imageInfo = await completer.future;
-    _isLoaded.value = true;
-    return imageInfo.image;
+
+    img_pkg.Image? photo;
+    ui.Image img1 = imageInfo.image;
+
+    Future<img_pkg.Image> convertFlutterUiToImage(ui.Image uiImage) async {
+      final uiBytes = await uiImage.toByteData();
+
+      final image = img_pkg.Image.fromBytes(
+          width: uiImage.width,
+          height: uiImage.height,
+          bytes: uiBytes!.buffer,
+          numChannels: 4);
+
+      return image;
+    }
+
+    Future<ui.Image> convertImageToFlutterUi(img_pkg.Image image) async {
+      if (image.format != img_pkg.Format.uint8 || image.numChannels != 4) {
+        final cmd = img_pkg.Command()
+          ..image(image)
+          ..convert(format: img_pkg.Format.uint8, numChannels: 4);
+        final rgba8 = await cmd.getImageThread();
+        if (rgba8 != null) {
+          image = rgba8;
+        }
+      }
+
+      ui.ImmutableBuffer buffer =
+          await ui.ImmutableBuffer.fromUint8List(image.toUint8List());
+
+      ui.ImageDescriptor id = ui.ImageDescriptor.raw(buffer,
+          height: image.height,
+          width: image.width,
+          pixelFormat: ui.PixelFormat.rgba8888);
+
+      ui.Codec codec = await id.instantiateCodec(
+          targetHeight: image.height, targetWidth: image.width);
+
+      ui.FrameInfo fi = await codec.getNextFrame();
+      ui.Image uiImage = fi.image;
+
+      return uiImage;
+    }
+
+    photo = await convertFlutterUiToImage(img1);
+
+    for (int x = 0; x < photo.width; x++) {
+      for (int y = 0; y < photo.height; y++) {
+        final pixel = photo.getPixelSafe(x.toInt(), y.toInt());
+        if (isVessels) {
+          if (pixel.r > 0) photo.setPixelRgba(x, y, 255, 0, 0, 255);
+          if (pixel.g > 0) photo.setPixelRgba(x, y, 0, 255, 0, 255);
+          if (pixel.b > 0) photo.setPixelRgba(x, y, 0, 0, 255, 255);
+        }
+        if (pixel.r == 0 && pixel.g == 0 && pixel.b == 0)
+          photo.setPixelRgba(x, y, 0, 0, 0, 0);
+      }
+    }
+
+    img1 = await convertImageToFlutterUi(photo);
+
+    if (isVessels) _isLoaded.value = true;
+
+    return img1;
   }
 
   @override
@@ -510,23 +571,41 @@ class ImagePainterState extends State<ImagePainter> {
                   animation: _controller,
                   builder: (context, child) {
                     return InteractiveViewer(
-                      transformationController: _transformationController,
-                      maxScale: 2.4,
-                      minScale: 1,
-                      panEnabled: _controller.mode == PaintMode.none,
-                      scaleEnabled: widget.isScalable!,
-                      onInteractionUpdate: _scaleUpdateGesture,
-                      onInteractionEnd: _scaleEndGesture,
-                      child: CustomPaint(
-                        size: imageSize,
-                        willChange: true,
-                        isComplex: true,
-                        painter: DrawImage(
-                          image: _image,
-                          controller: _controller,
-                        ),
-                      ),
-                    );
+                        transformationController: _transformationController,
+                        maxScale: 2.4,
+                        minScale: 1,
+                        panEnabled: _controller.mode == PaintMode.none,
+                        scaleEnabled: widget.isScalable!,
+                        onInteractionUpdate: _scaleUpdateGesture,
+                        onInteractionEnd: _scaleEndGesture,
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: imageSize.height,
+                              width: imageSize.width,
+                              //color: Colors.transparent,
+                              child: Image.network(
+                                  'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3.png?alt=media&token=728ad0c5-1140-489f-80de-df4fcf49f0d4'),
+                            ),
+                            ValueListenableBuilder<bool>(
+                                valueListenable: _isDisplayed,
+                                builder: (_, displayed, __) {
+                                  if (displayed) {
+                                    return CustomPaint(
+                                      size: imageSize,
+                                      willChange: true,
+                                      isComplex: true,
+                                      painter: DrawImage(
+                                        image: _image,
+                                        controller: _controller,
+                                      ),
+                                    );
+                                  } else {
+                                    return Container();
+                                  }
+                                }),
+                          ],
+                        ));
                   },
                 ),
               ),
@@ -558,12 +637,11 @@ class ImagePainterState extends State<ImagePainter> {
     _controller.setInProgress(false);
     if (_controller.start != null &&
         _controller.end != null &&
-        (_controller.mode == PaintMode.freeStyle)) {
+        _controller.mode == PaintMode.freeStyle) {
       _controller.addOffsets(null);
       _addFreeStylePoints();
       _controller.offsets.clear();
-    } else if (_controller.start != null &&
-        _controller.end != null) {
+    } else if (_controller.start != null && _controller.end != null) {
       _addEndPoints();
     }
     _controller.resetStartAndEnd();
@@ -758,6 +836,12 @@ class ImagePainterState extends State<ImagePainter> {
             onPressed: () {
               widget.onUndo?.call();
               _controller.undo();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.display_settings, color: Colors.grey[700]),
+            onPressed: () {
+              _isDisplayed.value = !_isDisplayed.value;
             },
           ),
           IconButton(

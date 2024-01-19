@@ -69,6 +69,7 @@ class ModeData {
     required this.mode,
     required this.label,
   });
+
   final IconData icon;
   final PaintMode mode;
   final String label;

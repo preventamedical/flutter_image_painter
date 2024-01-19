@@ -21,23 +21,28 @@ class DrawImage extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-      ///paints [ui.Image] on the canvas for reference to draw over it.
-      paintImage(
-        canvas: canvas,
-        image: image!,
-        filterQuality: FilterQuality.high,
-        rect: Rect.fromPoints(
-          const Offset(0, 0),
-          Offset(size.width, size.height),
-        ),
-      );
+    ///paints [ui.Image] on the canvas for reference to draw over it.
+    paintImage(
+      canvas: canvas,
+      image: image!,
+      filterQuality: FilterQuality.high,
+      rect: Rect.fromPoints(
+        const Offset(0, 0),
+        Offset(size.width, size.height),
+      ),
+    );
 
-    ///paints all the previoud paintInfo history recorded on [PaintHistory]
+    ///paints all the previous paintInfo history recorded on [PaintHistory]
     for (final item in _controller.paintHistory) {
       final _offset = item.offsets;
       final _painter = item.paint;
       switch (item.mode) {
         case PaintMode.freeStyle:
+          if (_painter.color == Colors.transparent) {
+            _painter.isAntiAlias = true;
+            _painter.blendMode = BlendMode.clear;
+            _painter.style = PaintingStyle.stroke;
+          }
           for (int i = 0; i < _offset.length - 1; i++) {
             if (_offset[i] != null && _offset[i + 1] != null) {
               final _path = Path()
@@ -54,13 +59,20 @@ class DrawImage extends CustomPainter {
       }
     }
 
-    ///Draws ongoing action on the canvas while indrag.
+    ///Draws ongoing action on the canvas while in-drag.
     if (_controller.busy) {
       final _start = _controller.start;
       final _end = _controller.end;
       final _paint = _controller.brush;
+
+      print('$_start, $_end, ${_paint.color}');
       switch (_controller.mode) {
         case PaintMode.freeStyle:
+          if (_paint.color == Colors.transparent) {
+            _paint.isAntiAlias = true;
+            _paint.blendMode = BlendMode.clear;
+            _paint.style = PaintingStyle.stroke;
+          }
           final points = _controller.offsets;
           for (int i = 0; i < _controller.offsets.length - 1; i++) {
             if (points[i] != null && points[i + 1] != null) {
@@ -74,6 +86,7 @@ class DrawImage extends CustomPainter {
             }
           }
           break;
+
         default:
       }
     }
@@ -116,7 +129,7 @@ class PaintInfo {
     ..style = shouldFill ? PaintingStyle.fill : PaintingStyle.stroke;
 
   bool get shouldFill {
-      return false;
+    return false;
   }
 
   ///In case of string, it is used to save string value entered.

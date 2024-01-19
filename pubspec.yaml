@@ -11,3 +11,4 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  image: ^4.1.4

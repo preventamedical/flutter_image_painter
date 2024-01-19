@@ -6,15 +6,10 @@ class Controller extends ChangeNotifier {
   late double _strokeWidth;
   late Color _color;
   late PaintMode _mode;
-  late String _text;
   late bool _fill;
-
   final List<Offset?> _offsets = [];
-
   final List<PaintInfo> _paintHistory = [];
-
   Offset? _start, _end;
-
   int _strokeMultiplier = 1;
   bool _paintInProgress = false;
 
@@ -24,31 +19,20 @@ class Controller extends ChangeNotifier {
     ..style = shouldFill ? PaintingStyle.fill : PaintingStyle.stroke;
 
   PaintMode get mode => _mode;
-
   double get strokeWidth => _strokeWidth;
-
   double get scaledStrokeWidth => _strokeWidth * _strokeMultiplier;
-
   bool get busy => _paintInProgress;
-
   bool get fill => _fill;
-
   Color get color => _color;
-
   List<PaintInfo> get paintHistory => _paintHistory;
-
   List<Offset?> get offsets => _offsets;
-
   Offset? get start => _start;
-
   Offset? get end => _end;
 
   Controller({
     double strokeWidth = 4.0,
     Color color = Colors.red,
     PaintMode mode = PaintMode.freeStyle,
-    String text = '',
-    bool fill = false,
   }) {
     _strokeWidth = strokeWidth;
     _color = color;
@@ -86,11 +70,6 @@ class Controller extends ChangeNotifier {
 
   void setMode(PaintMode mode) {
     _mode = mode;
-    notifyListeners();
-  }
-
-  void setText(String val) {
-    _text = val;
     notifyListeners();
   }
 

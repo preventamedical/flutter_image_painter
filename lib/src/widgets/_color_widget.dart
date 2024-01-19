@@ -35,8 +35,9 @@ class ColorItem extends StatelessWidget {
   }
 }
 
-const List<Color> editorColors = [
-  Colors.red,
-  Colors.blue,
-  Colors.green,
+List<Color> editorColors = [
+  const Color.fromARGB(0, 0, 0, 0),
+  const Color.fromARGB(255, 255, 0, 0),
+  const Color.fromARGB(255, 0, 255, 0),
+  const Color.fromARGB(255, 0, 0, 255),
 ];

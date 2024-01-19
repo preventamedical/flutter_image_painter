@@ -1,9 +1,6 @@
-import 'dart:io';
-
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:image_painter/image_painter.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(ExampleApp());
 
@@ -31,32 +28,15 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
 
   void saveImage() async {
     final image = await _imageKey.currentState?.exportImage();
-    final directory = (await getApplicationDocumentsDirectory()).path;
-    await Directory('$directory/sample').create(recursive: true);
-    final fullPath =
-        '$directory/sample/${DateTime.now().millisecondsSinceEpoch}.png';
-    final imgFile = File('$fullPath');
+    await FileSaver.instance.saveFile(name: 'image.png', bytes: image);
+
     if (image != null) {
-      imgFile.writeAsBytesSync(image);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.grey[700],
           padding: const EdgeInsets.only(left: 10),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("Image Exported successfully.",
-                  style: TextStyle(color: Colors.white)),
-              TextButton(
-                onPressed: () => OpenFile.open("$fullPath"),
-                child: Text(
-                  "Open",
-                  style: TextStyle(
-                    color: Colors.blue[200],
-                  ),
-                ),
-              )
-            ],
+          content: const Text("Image Exported successfully.",
+                  style: TextStyle(color: Colors.white),
           ),
         ),
       );
@@ -75,8 +55,8 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
           )
         ],
       ),
-      body: ImagePainter.asset(
-        "assets/sample.jpg",
+      body: ImagePainter.network(
+        'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3_av.png?alt=media&token=64fc1907-5c14-459d-bcba-27711b466e9b',
         key: _imageKey,
         scalable: true,
         initialStrokeWidth: 2,
