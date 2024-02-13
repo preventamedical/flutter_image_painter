@@ -65,7 +65,6 @@ class DrawImage extends CustomPainter {
       final _end = _controller.end;
       final _paint = _controller.brush;
 
-      print('$_start, $_end, ${_paint.color}');
       switch (_controller.mode) {
         case PaintMode.freeStyle:
           if (_paint.color == Colors.transparent) {

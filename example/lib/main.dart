@@ -64,6 +64,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
         textDelegate: TextDelegate(),
         initialColor: Colors.green,
         initialPaintMode: PaintMode.freeStyle,
+        onSubmitted: () => print('test'),
       ),
     );
   }

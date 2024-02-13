@@ -21,11 +21,9 @@ export '_image_painter.dart';
 class ImagePainter extends StatefulWidget {
   const ImagePainter._({
     Key? key,
-    this.assetPath,
     this.networkUrl,
     this.bgNetworkUrl,
     this.byteArray,
-    this.file,
     this.height,
     this.width,
     this.placeHolder,
@@ -50,6 +48,8 @@ class ImagePainter extends StatefulWidget {
     this.optionColor,
     this.onUndo,
     this.onClear,
+    this.onSubmitted,
+    this.onCancelled, this.file, this.assetPath,
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
@@ -69,6 +69,7 @@ class ImagePainter extends StatefulWidget {
     PaintMode? initialPaintMode,
     double? initialStrokeWidth,
     Color? initialColor,
+
     ValueChanged<PaintMode>? onPaintModeChanged,
     ValueChanged<Color>? onColorChanged,
     ValueChanged<double>? onStrokeWidthChanged,
@@ -81,6 +82,8 @@ class ImagePainter extends StatefulWidget {
     Color? optionColor,
     VoidCallback? onUndo,
     VoidCallback? onClear,
+    VoidCallback? onSubmitted,
+    VoidCallback? onCancelled,
   }) {
     return ImagePainter._(
       key: key,
@@ -110,124 +113,8 @@ class ImagePainter extends StatefulWidget {
       optionColor: optionColor,
       onUndo: onUndo,
       onClear: onClear,
-    );
-  }
-
-  ///Constructor for loading image from assetPath.
-  factory ImagePainter.asset(
-    String path, {
-    required Key key,
-    double? height,
-    double? width,
-    bool? scalable,
-    Widget? placeholderWidget,
-    List<Color>? colors,
-    Widget? brushIcon,
-    Widget? undoIcon,
-    Widget? clearAllIcon,
-    Widget? colorIcon,
-    PaintMode? initialPaintMode,
-    double? initialStrokeWidth,
-    Color? initialColor,
-    ValueChanged<PaintMode>? onPaintModeChanged,
-    ValueChanged<Color>? onColorChanged,
-    ValueChanged<double>? onStrokeWidthChanged,
-    TextDelegate? textDelegate,
-    bool? controlsAtTop,
-    bool? showControls,
-    Color? controlsBackgroundColor,
-    Color? selectedColor,
-    Color? unselectedColor,
-    Color? optionColor,
-    VoidCallback? onUndo,
-    VoidCallback? onClear,
-  }) {
-    return ImagePainter._(
-      key: key,
-      assetPath: path,
-      height: height,
-      width: width,
-      isScalable: scalable ?? false,
-      placeHolder: placeholderWidget,
-      colors: colors,
-      brushIcon: brushIcon,
-      undoIcon: undoIcon,
-      colorIcon: colorIcon,
-      clearAllIcon: clearAllIcon,
-      initialPaintMode: initialPaintMode,
-      initialColor: initialColor,
-      initialStrokeWidth: initialStrokeWidth,
-      onPaintModeChanged: onPaintModeChanged,
-      onColorChanged: onColorChanged,
-      onStrokeWidthChanged: onStrokeWidthChanged,
-      textDelegate: textDelegate,
-      controlsAtTop: controlsAtTop ?? true,
-      showControls: showControls ?? true,
-      controlsBackgroundColor: controlsBackgroundColor,
-      optionSelectedColor: selectedColor,
-      optionUnselectedColor: unselectedColor,
-      optionColor: optionColor,
-      onUndo: onUndo,
-      onClear: onClear,
-    );
-  }
-
-  ///Constructor for loading image from [File].
-  factory ImagePainter.file(
-    File file, {
-    required Key key,
-    double? height,
-    double? width,
-    bool? scalable,
-    Widget? placeholderWidget,
-    List<Color>? colors,
-    Widget? brushIcon,
-    Widget? undoIcon,
-    Widget? clearAllIcon,
-    Widget? colorIcon,
-    PaintMode? initialPaintMode,
-    double? initialStrokeWidth,
-    Color? initialColor,
-    ValueChanged<PaintMode>? onPaintModeChanged,
-    ValueChanged<Color>? onColorChanged,
-    ValueChanged<double>? onStrokeWidthChanged,
-    TextDelegate? textDelegate,
-    bool? controlsAtTop,
-    bool? showControls,
-    Color? controlsBackgroundColor,
-    Color? selectedColor,
-    Color? unselectedColor,
-    Color? optionColor,
-    VoidCallback? onUndo,
-    VoidCallback? onClear,
-  }) {
-    return ImagePainter._(
-      key: key,
-      file: file,
-      height: height,
-      width: width,
-      placeHolder: placeholderWidget,
-      colors: colors,
-      isScalable: scalable ?? false,
-      brushIcon: brushIcon,
-      undoIcon: undoIcon,
-      colorIcon: colorIcon,
-      clearAllIcon: clearAllIcon,
-      initialPaintMode: initialPaintMode,
-      initialColor: initialColor,
-      initialStrokeWidth: initialStrokeWidth,
-      onPaintModeChanged: onPaintModeChanged,
-      onColorChanged: onColorChanged,
-      onStrokeWidthChanged: onStrokeWidthChanged,
-      textDelegate: textDelegate,
-      controlsAtTop: controlsAtTop ?? true,
-      showControls: showControls ?? true,
-      controlsBackgroundColor: controlsBackgroundColor,
-      optionSelectedColor: selectedColor,
-      optionUnselectedColor: unselectedColor,
-      optionColor: optionColor,
-      onUndo: onUndo,
-      onClear: onClear,
+      onSubmitted: onSubmitted,
+      onCancelled: onCancelled,
     );
   }
 
@@ -258,8 +145,11 @@ class ImagePainter extends StatefulWidget {
     Color? unselectedColor,
     Color? optionColor,
     VoidCallback? onUndo,
-    VoidCallback? onClear,
-  }) {
+        VoidCallback? onClear,
+        VoidCallback? onSubmitted,
+        VoidCallback? onCancelled,
+
+      }) {
     return ImagePainter._(
       key: key,
       byteArray: byteArray,
@@ -361,6 +251,8 @@ class ImagePainter extends StatefulWidget {
   final Color? optionColor;
   final VoidCallback? onUndo;
   final VoidCallback? onClear;
+  final VoidCallback? onSubmitted;
+  final VoidCallback? onCancelled;
 
   @override
   ImagePainterState createState() => ImagePainterState();
@@ -835,6 +727,12 @@ class ImagePainterState extends State<ImagePainter> {
             itemBuilder: (_) => [_showRangeSlider()],
           ),
           const Spacer(),
+
+          MaterialButton(child: const Text("Submit"), onPressed: widget.onSubmitted),
+          MaterialButton(child: const Text("Cancel"), onPressed: widget.onCancelled),
+
+          const Spacer(),
+
           IconButton(
             tooltip: textDelegate.undo,
             icon: widget.undoIcon ?? Icon(Icons.reply, color: Colors.grey[700]),
