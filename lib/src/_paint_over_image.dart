@@ -19,6 +19,7 @@ class ImagePainter extends StatefulWidget {
     this.initialPaintMode,
     this.initialStrokeWidth,
     this.initialColor,
+    this.onLoaded,
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
@@ -33,6 +34,7 @@ class ImagePainter extends StatefulWidget {
     PaintMode? initialPaintMode,
     double? initialStrokeWidth,
     Color? initialColor,
+    ValueChanged<bool>? onLoaded,
   }) {
     return ImagePainter._(
       key: key,
@@ -45,6 +47,7 @@ class ImagePainter extends StatefulWidget {
       initialPaintMode: initialPaintMode,
       initialColor: initialColor,
       initialStrokeWidth: initialStrokeWidth,
+      onLoaded: onLoaded,
     );
   }
 
@@ -75,6 +78,8 @@ class ImagePainter extends StatefulWidget {
   //the initial color
   final Color? initialColor;
 
+  final ValueChanged<bool>? onLoaded;
+
   @override
   ImagePainterState createState() => ImagePainterState();
 }
@@ -97,6 +102,7 @@ class ImagePainterState extends State<ImagePainter> {
         color: widget.initialColor);
 
     _resolveAndConvertImage();
+    widget.onLoaded!(true);
     _transformationController = TransformationController();
   }
 
@@ -104,6 +110,7 @@ class ImagePainterState extends State<ImagePainter> {
   void dispose() {
     controller.dispose();
     _transformationController.dispose();
+    widget.onLoaded!(false);
     super.dispose();
   }
 
@@ -117,14 +124,17 @@ class ImagePainterState extends State<ImagePainter> {
     if (widget.vesselsImageUrl != null) {
       controller.vesselsImage =
           await controller.loadNetworkImage(widget.vesselsImageUrl!);
-
+          widget.onLoaded!(true);
       if (controller.vesselsImage == null) {
+        widget.onLoaded!(false);
         throw ("${widget.vesselsImageUrl} couldn't be resolved.");
       } else {
         _setStrokeMultiplier();
+        widget.onLoaded!(true);
       }
     } else {
       controller.isLoaded.value = true;
+      widget.onLoaded!(true);
       //_isLoaded.value = true;
     }
   }
