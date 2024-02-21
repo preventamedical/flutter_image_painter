@@ -133,6 +133,7 @@ class Controller extends ChangeNotifier {
     photo.setPixelRgba(0, 0, 1, 1, 1, 255);
     vesselsImage = await convertImageToFlutterUi(photo);
     isLoaded.value = true;
+    clear();
     notifyListeners();
   }
 
