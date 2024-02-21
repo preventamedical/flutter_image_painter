@@ -126,15 +126,14 @@ class Controller extends ChangeNotifier {
     return false;
   }
 
-  Future<ui.Image> clearVessels(ui.Image image) async {
+  Future<void> clearVessels() async {
     isLoaded.value = false;
-    img_pkg.Image photo = await convertFlutterUiToImage(image);
+    img_pkg.Image photo = await convertFlutterUiToImage(vesselsImage!);
     photo.clear(img_pkg.ColorRgba8(0, 0, 0, 0));
     photo.setPixelRgba(0, 0, 1, 1, 1, 255);
-    image = await convertImageToFlutterUi(photo);
+    vesselsImage = await convertImageToFlutterUi(photo);
     isLoaded.value = true;
     notifyListeners();
-    return image;
   }
 
   ///Completer function to convert network image to [ui.Image] before drawing on custompainter.
