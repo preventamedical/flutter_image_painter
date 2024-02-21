@@ -56,8 +56,8 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
         ],
       ),
       body: ImagePainter.network(
-        url: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3_av.png?alt=media&token=64fc1907-5c14-459d-bcba-27711b466e9b',
-        bgUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3.png?alt=media&token=728ad0c5-1140-489f-80de-df4fcf49f0d4',
+        vesselsImageUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3_av.png?alt=media&token=64fc1907-5c14-459d-bcba-27711b466e9b',
+        fundusImageUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3.png?alt=media&token=728ad0c5-1140-489f-80de-df4fcf49f0d4',
         key: _imageKey,
         scalable: true,
         initialStrokeWidth: 2,

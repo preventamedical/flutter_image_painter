@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide Image;
@@ -21,9 +20,8 @@ export '_image_painter.dart';
 class ImagePainter extends StatefulWidget {
   const ImagePainter._({
     Key? key,
-    this.networkUrl,
-    this.bgNetworkUrl,
-    this.byteArray,
+    this.vesselsImageUrl,
+    this.fundusImageUrl,
     this.height,
     this.width,
     this.placeHolder,
@@ -49,13 +47,13 @@ class ImagePainter extends StatefulWidget {
     this.onUndo,
     this.onClear,
     this.onSubmitted,
-    this.onCancelled, this.file, this.assetPath,
+    this.onCancelled,
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
   factory ImagePainter.network({
-    required String url,
-    required String bgUrl,
+    required String vesselsImageUrl,
+    required String fundusImageUrl,
     required Key key,
     double? height,
     double? width,
@@ -87,8 +85,8 @@ class ImagePainter extends StatefulWidget {
   }) {
     return ImagePainter._(
       key: key,
-      networkUrl: url,
-      bgNetworkUrl: bgUrl,
+      vesselsImageUrl: vesselsImageUrl,
+      fundusImageUrl: fundusImageUrl,
       height: height,
       width: width,
       placeHolder: placeholderWidget,
@@ -118,82 +116,11 @@ class ImagePainter extends StatefulWidget {
     );
   }
 
-  ///Constructor for loading image from memory.
-  factory ImagePainter.memory(
-    Uint8List byteArray, {
-    required Key key,
-    double? height,
-    double? width,
-    bool? scalable,
-    Widget? placeholderWidget,
-    List<Color>? colors,
-    Widget? brushIcon,
-    Widget? undoIcon,
-    Widget? clearAllIcon,
-    Widget? colorIcon,
-    PaintMode? initialPaintMode,
-    double? initialStrokeWidth,
-    Color? initialColor,
-    ValueChanged<PaintMode>? onPaintModeChanged,
-    ValueChanged<Color>? onColorChanged,
-    ValueChanged<double>? onStrokeWidthChanged,
-    TextDelegate? textDelegate,
-    bool? controlsAtTop,
-    bool? showControls,
-    Color? controlsBackgroundColor,
-    Color? selectedColor,
-    Color? unselectedColor,
-    Color? optionColor,
-    VoidCallback? onUndo,
-        VoidCallback? onClear,
-        VoidCallback? onSubmitted,
-        VoidCallback? onCancelled,
-
-      }) {
-    return ImagePainter._(
-      key: key,
-      byteArray: byteArray,
-      height: height,
-      width: width,
-      placeHolder: placeholderWidget,
-      isScalable: scalable ?? false,
-      colors: colors,
-      brushIcon: brushIcon,
-      undoIcon: undoIcon,
-      colorIcon: colorIcon,
-      clearAllIcon: clearAllIcon,
-      initialPaintMode: initialPaintMode,
-      initialColor: initialColor,
-      initialStrokeWidth: initialStrokeWidth,
-      onPaintModeChanged: onPaintModeChanged,
-      onColorChanged: onColorChanged,
-      onStrokeWidthChanged: onStrokeWidthChanged,
-      textDelegate: textDelegate,
-      controlsAtTop: controlsAtTop ?? true,
-      showControls: showControls ?? true,
-      controlsBackgroundColor: controlsBackgroundColor,
-      optionSelectedColor: selectedColor,
-      optionUnselectedColor: unselectedColor,
-      optionColor: optionColor,
-      onUndo: onUndo,
-      onClear: onClear,
-    );
-  }
+  ///Only accessible through [ImagePainter.network] constructor.
+  final String? vesselsImageUrl;
 
   ///Only accessible through [ImagePainter.network] constructor.
-  final String? networkUrl;
-
-  ///Only accessible through [ImagePainter.network] constructor.
-  final String? bgNetworkUrl;
-
-  ///Only accessible through [ImagePainter.memory] constructor.
-  final Uint8List? byteArray;
-
-  ///Only accessible through [ImagePainter.file] constructor.
-  final File? file;
-
-  ///Only accessible through [ImagePainter.asset] constructor.
-  final String? assetPath;
+  final String? fundusImageUrl;
 
   ///Height of the Widget. Image is subjected to fit within the given height.
   final double? height;
@@ -303,35 +230,11 @@ class ImagePainterState extends State<ImagePainter> {
 
   ///Converts the incoming image type from constructor to [ui.Image]
   Future<void> _resolveAndConvertImage() async {
-    if (widget.networkUrl != null) {
-      //_imageFg = await _loadNetworkImage('https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F15f0682d-b064-4508-9ff6-f9ed7a52db09_od_posterior_220806T1509.png?alt=media&token=29466961-9ff1-4a14-be06-16f99cb24f45', isVessels: false);
-      _image = await _loadNetworkImage(widget.networkUrl!);
+    if (widget.vesselsImageUrl != null) {
+      _image = await _loadNetworkImage(widget.vesselsImageUrl!);
 
       if (_image == null) {
-        throw ("${widget.networkUrl} couldn't be resolved.");
-      } else {
-        _setStrokeMultiplier();
-      }
-    } else if (widget.assetPath != null) {
-      final img = await rootBundle.load(widget.assetPath!);
-      _image = await _convertImage(Uint8List.view(img.buffer));
-      if (_image == null) {
-        throw ("${widget.assetPath} couldn't be resolved.");
-      } else {
-        _setStrokeMultiplier();
-      }
-    } else if (widget.file != null) {
-      final img = await widget.file!.readAsBytes();
-      _image = await _convertImage(img);
-      if (_image == null) {
-        throw ("Image couldn't be resolved from provided file.");
-      } else {
-        _setStrokeMultiplier();
-      }
-    } else if (widget.byteArray != null) {
-      _image = await _convertImage(widget.byteArray!);
-      if (_image == null) {
-        throw ("Image couldn't be resolved from provided byteArray.");
+        throw ("${widget.vesselsImageUrl} couldn't be resolved.");
       } else {
         _setStrokeMultiplier();
       }
@@ -347,16 +250,6 @@ class ImagePainterState extends State<ImagePainter> {
       _strokeMultiplier = (_image!.height + _image!.width) ~/ 1000;
     }
     _controller.update(strokeMultiplier: _strokeMultiplier);
-  }
-
-  ///Completer function to convert asset or file image to [ui.Image] before drawing on custompainter.
-  Future<ui.Image> _convertImage(Uint8List img) async {
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromList(img, (image) {
-      _isLoaded.value = true;
-      return completer.complete(image);
-    });
-    return completer.future;
   }
 
   ///Completer function to convert network image to [ui.Image] before drawing on custompainter.
@@ -482,7 +375,7 @@ class ImagePainterState extends State<ImagePainter> {
                               height: imageSize.height,
                               width: imageSize.width,
                               //color: Colors.transparent,
-                              child: Image.network(widget.bgNetworkUrl!),
+                              child: Image.network(widget.fundusImageUrl!),
                             ),
                             ValueListenableBuilder<bool>(
                                 valueListenable: _isDisplayed,
@@ -657,11 +550,8 @@ class ImagePainterState extends State<ImagePainter> {
   ///Can be converted to image file by writing as bytes.
   Future<Uint8List?> exportImage() async {
     late ui.Image _convertedImage;
-    if (widget.byteArray != null && _controller.paintHistory.isEmpty) {
-      return widget.byteArray;
-    } else {
-      _convertedImage = await _renderImage();
-    }
+    _convertedImage = await _renderImage();
+
     final byteData =
         await _convertedImage.toByteData(format: ui.ImageByteFormat.png);
     return byteData?.buffer.asUint8List();
