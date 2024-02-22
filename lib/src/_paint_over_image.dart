@@ -187,7 +187,7 @@ class ImagePainter extends StatefulWidget {
 
 ///
 class ImagePainterState extends State<ImagePainter> {
-  ui.Image? _image;
+  ui.Image? _vesselsImage;
   late Controller _controller;
   late final ValueNotifier<bool> _isLoaded;
   late final ValueNotifier<bool> _isDisplayed;
@@ -226,14 +226,14 @@ class ImagePainterState extends State<ImagePainter> {
   bool get isEdited => _controller.paintHistory.isNotEmpty;
 
   Size get imageSize =>
-      Size(_image?.width.toDouble() ?? 0, _image?.height.toDouble() ?? 0);
+      Size(_vesselsImage?.width.toDouble() ?? 0, _vesselsImage?.height.toDouble() ?? 0);
 
   ///Converts the incoming image type from constructor to [ui.Image]
   Future<void> _resolveAndConvertImage() async {
     if (widget.vesselsImageUrl != null) {
-      _image = await _loadNetworkImage(widget.vesselsImageUrl!);
+      _vesselsImage = await _loadNetworkImage(widget.vesselsImageUrl!);
 
-      if (_image == null) {
+      if (_vesselsImage == null) {
         throw ("${widget.vesselsImageUrl} couldn't be resolved.");
       } else {
         _setStrokeMultiplier();
@@ -246,8 +246,8 @@ class ImagePainterState extends State<ImagePainter> {
   ///Dynamically sets stroke multiplier on the basis of widget size.
   ///Implemented to avoid thin stroke on high res images.
   _setStrokeMultiplier() {
-    if ((_image!.height + _image!.width) > 1000) {
-      _strokeMultiplier = (_image!.height + _image!.width) ~/ 1000;
+    if ((_vesselsImage!.height + _vesselsImage!.width) > 1000) {
+      _strokeMultiplier = (_vesselsImage!.height + _vesselsImage!.width) ~/ 1000;
     }
     _controller.update(strokeMultiplier: _strokeMultiplier);
   }
@@ -262,46 +262,6 @@ class ImagePainterState extends State<ImagePainter> {
 
     img_pkg.Image? photo;
     ui.Image img1 = imageInfo.image;
-
-    Future<img_pkg.Image> convertFlutterUiToImage(ui.Image uiImage) async {
-      final uiBytes = await uiImage.toByteData();
-
-      final image = img_pkg.Image.fromBytes(
-          width: uiImage.width,
-          height: uiImage.height,
-          bytes: uiBytes!.buffer,
-          numChannels: 4);
-
-      return image;
-    }
-
-    Future<ui.Image> convertImageToFlutterUi(img_pkg.Image image) async {
-      if (image.format != img_pkg.Format.uint8 || image.numChannels != 4) {
-        final cmd = img_pkg.Command()
-          ..image(image)
-          ..convert(format: img_pkg.Format.uint8, numChannels: 4);
-        final rgba8 = await cmd.getImageThread();
-        if (rgba8 != null) {
-          image = rgba8;
-        }
-      }
-
-      ui.ImmutableBuffer buffer =
-          await ui.ImmutableBuffer.fromUint8List(image.toUint8List());
-
-      ui.ImageDescriptor id = ui.ImageDescriptor.raw(buffer,
-          height: image.height,
-          width: image.width,
-          pixelFormat: ui.PixelFormat.rgba8888);
-
-      ui.Codec codec = await id.instantiateCodec(
-          targetHeight: image.height, targetWidth: image.width);
-
-      ui.FrameInfo fi = await codec.getNextFrame();
-      ui.Image uiImage = fi.image;
-
-      return uiImage;
-    }
 
     photo = await convertFlutterUiToImage(img1);
 
@@ -326,6 +286,16 @@ class ImagePainterState extends State<ImagePainter> {
     return img1;
   }
 
+  Future<void> clearVessels() async {
+    _isLoaded.value = false;
+    img_pkg.Image photo = await convertFlutterUiToImage(_vesselsImage!);
+    photo.clear(img_pkg.ColorRgba8(0, 0, 0, 0));
+    photo.setPixelRgba(0, 0, 1, 1, 1, 255);
+    _vesselsImage = await convertImageToFlutterUi(photo);
+    _controller.clear();
+    _isLoaded.value = true;
+  }
+  
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -386,7 +356,7 @@ class ImagePainterState extends State<ImagePainter> {
                                       willChange: true,
                                       isComplex: true,
                                       painter: DrawImage(
-                                        image: _image,
+                                        image: _vesselsImage,
                                         controller: _controller,
                                       ),
                                     );
@@ -459,8 +429,8 @@ class ImagePainterState extends State<ImagePainter> {
   Future<ui.Image> _renderImage() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final painter = DrawImage(image: _image, controller: _controller);
-    final size = Size(_image!.width.toDouble(), _image!.height.toDouble());
+    final painter = DrawImage(image: _vesselsImage, controller: _controller);
+    final size = Size(_vesselsImage!.width.toDouble(), _vesselsImage!.height.toDouble());
     painter.paint(canvas, size);
     return recorder
         .endRecording()
@@ -619,6 +589,7 @@ class ImagePainterState extends State<ImagePainter> {
           const Spacer(),
 
           MaterialButton(child: const Text("Submit"), onPressed: widget.onSubmitted),
+
           MaterialButton(child: const Text("Cancel"), onPressed: widget.onCancelled),
 
           const Spacer(),
@@ -641,13 +612,50 @@ class ImagePainterState extends State<ImagePainter> {
             tooltip: textDelegate.clearAllProgress,
             icon: widget.clearAllIcon ??
                 Icon(Icons.clear, color: Colors.grey[700]),
-            onPressed: () {
-              widget.onClear?.call();
-              _controller.clear();
-            },
+            onPressed: clearVessels,
           ),
         ],
       ),
     );
+  }
+
+  Future<img_pkg.Image> convertFlutterUiToImage(ui.Image uiImage) async {
+    final uiBytes = await uiImage.toByteData();
+
+    final image = img_pkg.Image.fromBytes(
+        width: uiImage.width,
+        height: uiImage.height,
+        bytes: uiBytes!.buffer,
+        numChannels: 4);
+
+    return image;
+  }
+
+  Future<ui.Image> convertImageToFlutterUi(img_pkg.Image image) async {
+    if (image.format != img_pkg.Format.uint8 || image.numChannels != 4) {
+      final cmd = img_pkg.Command()
+        ..image(image)
+        ..convert(format: img_pkg.Format.uint8, numChannels: 4);
+      final rgba8 = await cmd.getImageThread();
+      if (rgba8 != null) {
+        image = rgba8;
+      }
+    }
+
+    ui.ImmutableBuffer buffer =
+    await ui.ImmutableBuffer.fromUint8List(image.toUint8List());
+
+    ui.ImageDescriptor id = ui.ImageDescriptor.raw(buffer,
+        height: image.height,
+        width: image.width,
+        pixelFormat: ui.PixelFormat.rgba8888);
+
+    ui.Codec codec = await id.instantiateCodec(
+        targetHeight: image.height, targetWidth: image.width);
+
+    ui.FrameInfo fi = await codec.getNextFrame();
+    ui.Image uiImage = fi.image;
+
+    return uiImage;
   }
 }
