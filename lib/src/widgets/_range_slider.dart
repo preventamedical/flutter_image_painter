@@ -18,9 +18,9 @@ class RangedSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slider.adaptive(
-      max: 4,
-      min: 1.5,
-      divisions: 3,
+      max: 2,
+      min: 0.5,
+      divisions: 4,
       value: value,
       onChanged: onChanged,
     );
