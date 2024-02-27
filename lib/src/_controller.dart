@@ -40,8 +40,8 @@ class Controller extends ChangeNotifier {
   }
 
   void addPaintInfo(PaintInfo paintInfo) {
-    _paintHistory.add(paintInfo);
-    notifyListeners();
+    if(paintInfo.offsets.length > 0) _paintHistory.add(paintInfo);
+    //notifyListeners();
   }
 
   void undo() {

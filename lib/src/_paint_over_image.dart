@@ -401,20 +401,9 @@ class ImagePainterState extends State<ImagePainter> {
       _controller.addOffsets(null);
       _addFreeStylePoints();
       _controller.offsets.clear();
-    } else if (_controller.start != null && _controller.end != null) {
-      _addEndPoints();
     }
     _controller.resetStartAndEnd();
   }
-
-  void _addEndPoints() => _addPaintHistory(
-        PaintInfo(
-          offsets: <Offset?>[_controller.start, _controller.end],
-          mode: _controller.mode,
-          color: _controller.color,
-          strokeWidth: _controller.scaledStrokeWidth,
-        ),
-      );
 
   void _addFreeStylePoints() => _addPaintHistory(
         PaintInfo(

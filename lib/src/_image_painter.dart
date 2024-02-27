@@ -25,7 +25,7 @@ class DrawImage extends CustomPainter {
     paintImage(
       canvas: canvas,
       image: image!,
-      filterQuality: FilterQuality.high,
+      filterQuality: FilterQuality.none,
       rect: Rect.fromPoints(
         const Offset(0, 0),
         Offset(size.width, size.height),
@@ -50,8 +50,7 @@ class DrawImage extends CustomPainter {
                 ..lineTo(_offset[i + 1]!.dx, _offset[i + 1]!.dy);
               canvas.drawPath(_path, _painter..strokeCap = StrokeCap.round);
             } else if (_offset[i] != null && _offset[i + 1] == null) {
-              canvas.drawPoints(PointMode.points, [_offset[i]!],
-                  _painter..strokeCap = StrokeCap.round);
+              //canvas.drawPoints(PointMode.points, [_offset[i]!], _painter..strokeCap = StrokeCap.round);
             }
           }
           break;
@@ -61,8 +60,6 @@ class DrawImage extends CustomPainter {
 
     ///Draws ongoing action on the canvas while in-drag.
     if (_controller.busy) {
-      final _start = _controller.start;
-      final _end = _controller.end;
       final _paint = _controller.brush;
 
       switch (_controller.mode) {
@@ -80,8 +77,7 @@ class DrawImage extends CustomPainter {
                   Offset(points[i + 1]!.dx, points[i + 1]!.dy),
                   _paint..strokeCap = StrokeCap.round);
             } else if (points[i] != null && points[i + 1] == null) {
-              canvas.drawPoints(PointMode.points,
-                  [Offset(points[i]!.dx, points[i]!.dy)], _paint);
+              //canvas.drawPoints(PointMode.points, [Offset(points[i]!.dx, points[i]!.dy)], _paint);
             }
           }
           break;
