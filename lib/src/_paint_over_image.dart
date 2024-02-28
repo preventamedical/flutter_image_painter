@@ -41,6 +41,7 @@ class ImagePainter extends StatefulWidget {
     this.textDelegate,
     this.showControls = true,
     this.controlsBackgroundColor,
+    this.backgroundColor,
     this.optionSelectedColor,
     this.optionUnselectedColor,
     this.optionColor,
@@ -75,6 +76,7 @@ class ImagePainter extends StatefulWidget {
     bool? controlsAtTop,
     bool? showControls,
     Color? controlsBackgroundColor,
+    Color? backgroundColor,
     Color? selectedColor,
     Color? unselectedColor,
     Color? optionColor,
@@ -106,6 +108,7 @@ class ImagePainter extends StatefulWidget {
       controlsAtTop: controlsAtTop ?? true,
       showControls: showControls ?? true,
       controlsBackgroundColor: controlsBackgroundColor,
+      backgroundColor: backgroundColor ?? Colors.black,
       optionSelectedColor: selectedColor,
       optionUnselectedColor: unselectedColor,
       optionColor: optionColor,
@@ -173,6 +176,7 @@ class ImagePainter extends StatefulWidget {
   ///It will control displaying the Control Bar
   final bool showControls;
   final Color? controlsBackgroundColor;
+  final Color? backgroundColor;
   final Color? optionSelectedColor;
   final Color? optionUnselectedColor;
   final Color? optionColor;
@@ -319,6 +323,7 @@ class ImagePainterState extends State<ImagePainter> {
   ///paints image on given constrains for drawing if image is not null.
   Widget _paintImage() {
     return Container(
+      color: widget.backgroundColor,
       height: widget.height ?? double.maxFinite,
       width: widget.width ?? double.maxFinite,
       child: Column(
@@ -371,8 +376,6 @@ class ImagePainterState extends State<ImagePainter> {
               ),
             ),
           ),
-          if (!widget.controlsAtTop && widget.showControls) _buildControls(),
-          SizedBox(height: MediaQuery.of(context).padding.bottom)
         ],
       ),
     );
