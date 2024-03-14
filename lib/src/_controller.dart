@@ -40,7 +40,7 @@ class Controller extends ChangeNotifier {
   }
 
   void addPaintInfo(PaintInfo paintInfo) {
-    if(paintInfo.offsets.length > 5) _paintHistory.add(paintInfo);
+    if(paintInfo.offsets.length > 20) _paintHistory.add(paintInfo);
     //notifyListeners();
   }
 
