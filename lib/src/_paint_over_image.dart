@@ -5,6 +5,8 @@ import 'package:flutter/material.dart' hide Image;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as img_pkg;
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 
 import '_controller.dart';
 import '_image_painter.dart';
@@ -604,7 +606,21 @@ class ImagePainterState extends State<ImagePainter> {
             tooltip: textDelegate.clearAllProgress,
             icon: widget.clearAllIcon ??
                 Icon(Icons.clear, color: Colors.grey[700]),
-            onPressed: clearVessels,
+            onPressed: () async {
+              await QuickAlert.show(
+                context: context,
+                type: QuickAlertType.confirm,
+                text: "Are you sure you want to CLEAR ALL labels?",
+                confirmBtnText: "Yes",
+                cancelBtnText: "No",
+                confirmBtnColor: Colors.red,
+                onCancelBtnTap: () => Navigator.pop(context),
+                onConfirmBtnTap: () async {
+                  Navigator.pop(context);
+                  clearVessels();
+                },
+              );
+            },
           ),
         ],
       ),
