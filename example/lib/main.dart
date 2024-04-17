@@ -65,6 +65,14 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
         initialColor: Colors.green,
         initialPaintMode: PaintMode.freeStyle,
         onSubmitted: () => print('test'),
+        toolbar:
+
+        Row(children: [
+          MaterialButton(child: const Text("Submit"), onPressed: () => print('Submit')),
+          MaterialButton(child: const Text("Cancel"), onPressed: () => print('Cancel')),
+          MaterialButton(child: const Text("Save"),onPressed: () { print('Save'); },),
+
+        ],)
       ),
     );
   }

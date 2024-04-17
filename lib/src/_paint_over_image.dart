@@ -20,6 +20,7 @@ export '_image_painter.dart';
 ///[ImagePainter] widget.
 @immutable
 class ImagePainter extends StatefulWidget {
+
   const ImagePainter._({
     Key? key,
     this.vesselsImageUrl,
@@ -51,6 +52,7 @@ class ImagePainter extends StatefulWidget {
     this.onClear,
     this.onSubmitted,
     this.onCancelled,
+    required this.toolbar,
   }) : super(key: key);
 
   ///Constructor for loading image from network url.
@@ -86,6 +88,7 @@ class ImagePainter extends StatefulWidget {
     VoidCallback? onClear,
     VoidCallback? onSubmitted,
     VoidCallback? onCancelled,
+    required Widget toolbar,
   }) {
     return ImagePainter._(
       key: key,
@@ -118,6 +121,7 @@ class ImagePainter extends StatefulWidget {
       onClear: onClear,
       onSubmitted: onSubmitted,
       onCancelled: onCancelled,
+      toolbar: toolbar,
     );
   }
 
@@ -186,6 +190,7 @@ class ImagePainter extends StatefulWidget {
   final VoidCallback? onClear;
   final VoidCallback? onSubmitted;
   final VoidCallback? onCancelled;
+  final Widget toolbar;
 
   @override
   ImagePainterState createState() => ImagePainterState();
@@ -202,6 +207,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   int _strokeMultiplier = 1;
   late TextDelegate textDelegate;
+
   @override
   void initState() {
     super.initState();
@@ -582,9 +588,11 @@ class ImagePainterState extends State<ImagePainter> {
           ),
           const Spacer(),
 
-          MaterialButton(child: const Text("Submit"), onPressed: widget.onSubmitted),
+          //MaterialButton(child: const Text("Submit"), onPressed: widget.onSubmitted),
 
-          MaterialButton(child: const Text("Cancel"), onPressed: widget.onCancelled),
+          //MaterialButton(child: const Text("Cancel"), onPressed: widget.onCancelled),
+
+          widget.toolbar,
 
           const Spacer(),
 
