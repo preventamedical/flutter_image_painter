@@ -664,7 +664,7 @@ class ImagePainterState extends State<ImagePainter> {
     ui.ImageDescriptor id = ui.ImageDescriptor.raw(buffer,
         height: image.height,
         width: image.width,
-        pixelFormat: ui.PixelFormat.rgba8888);
+        pixelFormat: ui.PixelFormat.bgra8888);
 
     ui.Codec codec = await id.instantiateCodec(
         targetHeight: image.height, targetWidth: image.width);

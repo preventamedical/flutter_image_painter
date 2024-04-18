@@ -28,7 +28,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
 
   void saveImage() async {
     final image = await _imageKey.currentState?.exportImage();
-    await FileSaver.instance.saveFile(name: 'image.png', bytes: image);
+    await FileSaver.instance.saveFile(name: 'image.jpg', bytes: image);
 
     if (image != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +56,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
         ],
       ),
       body: ImagePainter.network(
-        vesselsImageUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3_av.png?alt=media&token=64fc1907-5c14-459d-bcba-27711b466e9b',
+        vesselsImageUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical-ai.appspot.com/o/retinal_screenings%2Foptos%2Fpredicted_vessel_maps%2F20230316_090056.png?alt=media&token=ef26ffdd-e49a-4fa9-839b-516e2a7ad2fc',
         fundusImageUrl: 'https://firebasestorage.googleapis.com/v0/b/preventa-medical.appspot.com/o/retinal_screenings%2F3.png?alt=media&token=728ad0c5-1140-489f-80de-df4fcf49f0d4',
         key: _imageKey,
         scalable: true,
