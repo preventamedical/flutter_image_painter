@@ -275,23 +275,26 @@ class ImagePainterState extends State<ImagePainter> {
     img_pkg.Image? photo;
     ui.Image img1 = imageInfo.image;
 
-    photo = await convertFlutterUiToImage(img1);
+    /// Checks where network image is a jpeg and will convert it.
+    if(path.contains('jpg') || path.contains('jpeg')) {
+      photo = await convertFlutterUiToImage(img1);
 
-    for (int x = 0; x < photo.width; x++) {
-      for (int y = 0; y < photo.height; y++) {
-        final pixel = photo.getPixelSafe(x.toInt(), y.toInt());
-        if (isVessels) {
-          if (pixel.r > 0) photo.setPixelRgba(x, y, 255, 0, 0, 255);
-          if (pixel.g > 0) photo.setPixelRgba(x, y, 0, 255, 0, 255);
-          if (pixel.b > 0) photo.setPixelRgba(x, y, 0, 0, 255, 255);
-        }
-        if (pixel.r == 0 && pixel.g == 0 && pixel.b == 0) {
-          photo.setPixelRgba(x, y, 0, 0, 0, 0);
+      for (int x = 0; x < photo.width; x++) {
+        for (int y = 0; y < photo.height; y++) {
+          final pixel = photo.getPixelSafe(x.toInt(), y.toInt());
+          if (isVessels) {
+            if (pixel.r > 100) photo.setPixelRgba(x, y, 255, 0, 0, 255);
+            if (pixel.g > 100) photo.setPixelRgba(x, y, 0, 255, 0, 255);
+            if (pixel.b > 100) photo.setPixelRgba(x, y, 0, 0, 255, 255);
+          }
+          if (pixel.r < 100 && pixel.g < 100 && pixel.b < 100) {
+            photo.setPixelRgba(x, y, 0, 0, 0, 0);
+          }
         }
       }
-    }
 
-    img1 = await convertImageToFlutterUi(photo);
+      img1 = await convertImageToFlutterUi(photo);
+    }
 
     if (isVessels) _isLoaded.value = true;
 
